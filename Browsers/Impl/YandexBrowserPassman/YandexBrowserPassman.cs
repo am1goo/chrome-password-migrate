@@ -1,20 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 
-public class YandexBrowser : BaseBrowser
+public class YandexBrowserPassman : BaseBrowser
 {
   private const string RELATIVE_FOLDER_PATH = @"Yandex\YandexBrowser\User Data\";
-  private const string LOGIN_FILE_NAME = "Ya Login Data";
+  private const string LOGIN_FILE_NAME = "Ya Passman Data";
 
-  public override string name { get { return "Yandex Browser"; } }
+  public override string name { get { return "Yandex Browser (Passman)"; } }
   public override string loginsTable { get { return "logins"; } }
-  public override Type loginsType { get { return typeof(YandexBrowserLogins); } }
+  public override Type loginsType { get { return typeof(YandexBrowserPassmanLogins); } }
 
-  public YandexBrowser() { }
+  public YandexBrowserPassman() { }
 
   public override bool Scan(IList<string> results)
   {
-    return OnScan(results, RELATIVE_FOLDER_PATH, LOGIN_FILE_NAME);
+    bool res = false;
+    res |= OnScan(results, RELATIVE_FOLDER_PATH, LOGIN_FILE_NAME);
+    return true;
   }
 
   public override IList<ILogins> Get(string sqliteDataSource)

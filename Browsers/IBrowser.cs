@@ -9,7 +9,6 @@ public interface IBrowser
   Type loginsType { get; }
 
   bool Scan(IList<string> results);
-
   IList<ILogins> Get(string sqliteDataSource);
   int Insert(string sqliteDataSource, IList<ILogins> logins, Action<int, int> onProgress);
 }

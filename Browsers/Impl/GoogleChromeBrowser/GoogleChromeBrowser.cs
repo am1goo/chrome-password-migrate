@@ -1,70 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.Common;
-using System.Data.SQLite;
-using System.IO;
 
-public class GoogleChromeBrowser : IBrowser
+public class GoogleChromeBrowser : BaseBrowser
 {
   private const string RELATIVE_FOLDER_PATH = @"Google\Chrome\User Data\";
   private const string LOGIN_FILE_NAME = "Login Data";
 
-  public string name { get { return "Chrome Browser"; } }
-  public string loginsTable { get { return "logins"; } }
-  public Type loginsType { get { return typeof(GoogleChromeBrowserLogins); } }
+  public override string name { get { return "Chrome Browser"; } }
+  public override string loginsTable { get { return "logins"; } }
+  public override Type loginsType { get { return typeof(GoogleChromeBrowserLogins); } }
 
   public GoogleChromeBrowser() { }
 
-  public bool Scan(IList<string> results)
+  public override bool Scan(IList<string> results)
   {
-    string mainFolder = AppArgs.GetArgString("-scan-main-folder", Constants.APP_DATA_LOCAL.FullName);
-    string rootFolder = Path.Combine(mainFolder, RELATIVE_FOLDER_PATH);
-    return ScanHelper.Scan(rootFolder, LOGIN_FILE_NAME, results);
+    return OnScan(results, RELATIVE_FOLDER_PATH, LOGIN_FILE_NAME);
   }
 
-  public IList<ILogins> Get(string sqliteDataSource)
+  public override IList<ILogins> Get(string sqliteDataSource)
   {
-    SQLiteFactory factory = (SQLiteFactory)DbProviderFactories.GetFactory("System.Data.SQLite");
-    using (SQLiteConnection conn = (SQLiteConnection)factory.CreateConnection())
-    {
-      conn.ConnectionString = "Data Source = " + sqliteDataSource;
-      conn.Open();
-
-      DataTable allTables = SQLiteHelper.GetAllTables(conn);
-      if (!SQLiteHelper.CheckValueExists(allTables, "name", loginsTable))
-      {
-        Console.WriteLine(string.Format("Can't find table '{0}' in db at path {1}", loginsTable, sqliteDataSource));
-        return null;
-      }
-
-      IList<ILogins> results = new List<ILogins>();
-      DataTable table = SQLiteHelper.SelectAll(conn, loginsTable);
-      IList<GoogleChromeBrowserLogins> logins = BrowserHelper.Parse<GoogleChromeBrowserLogins>(table);
-      foreach (var v in logins)
-      {
-        results.Add(v);
-      }
-      return results;
-    }
+    return OnGet(sqliteDataSource);
   }
 
-  public int Insert(string sqliteDataSource, IList<ILogins> logins, Action<int, int> onProgress)
+  public override int Insert(string sqliteDataSource, IList<ILogins> logins, Action<int, int> onProgress)
   {
-    SQLiteFactory factory = (SQLiteFactory)DbProviderFactories.GetFactory("System.Data.SQLite");
-    using (SQLiteConnection conn = (SQLiteConnection)factory.CreateConnection())
-    {
-      conn.ConnectionString = "Data Source = " + sqliteDataSource;
-      conn.Open();
-
-      DataTable allTables = SQLiteHelper.GetAllTables(conn);
-      if (!SQLiteHelper.CheckValueExists(allTables, "name", loginsTable))
-      {
-        Console.WriteLine(string.Format("Can't find table '{0}' in db at path {1}", loginsTable, sqliteDataSource));
-        return 0;
-      }
-
-      return SQLiteHelper.InsertAll(conn, loginsTable, BrowserHelper.Convert(logins), onProgress);
-    }
+    return OnInsert(sqliteDataSource, logins, onProgress);
   }
 }

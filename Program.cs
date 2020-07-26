@@ -46,6 +46,7 @@ public class Program
 
     if (results.Count == 0)
     {
+      Console.WriteLine("Press any key to exit...");
       Console.ReadKey();
       return;
     }
@@ -55,11 +56,13 @@ public class Program
 
     Copy(srcIndex, destIndex, results);
 
+    Console.WriteLine("Press any key to exit...");
     Console.ReadKey();
   }
 
   private static void FindBrowsers(IList<IBrowser> list)
   {
+    List<IBrowser> results = new List<IBrowser>();
     Type interfactType = typeof(IBrowser);
     foreach (Type type in Assembly.GetExecutingAssembly().GetTypes())
     {
@@ -69,9 +72,20 @@ public class Program
       if (interfactType.IsAssignableFrom(type))
       {
         IBrowser impl = Activator.CreateInstance(type) as IBrowser;
-        list.Add(impl);
+        results.Add(impl);
       }
     }
+
+    results.Sort(SortBrowsersByName);
+    for (int i = 0; i < results.Count; ++i)
+    {
+      list.Add(results[i]);
+    }
+  }
+
+  private static int SortBrowsersByName(IBrowser x, IBrowser y)
+  {
+    return x.GetType().Name.CompareTo(y.GetType().Name);
   }
 
   private static int SelectIndex(string name, IList<ScanResult> results)

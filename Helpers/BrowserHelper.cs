@@ -80,24 +80,28 @@ public static class BrowserHelper
     return results;
   }
 
-  public static IList<T> Parse<T>(DataTable dt) where T : ILogins
+  public static IList<ILogins> Parse<T>(DataTable dt) where T : ILogins
   {
-    IList<T> results = new List<T>();
+    return Parse(dt, typeof(T));
+  }
+
+  public static IList<ILogins> Parse(DataTable dt, Type type)
+  {
+    IList<ILogins> results = new List<ILogins>();
 
     for (int i = 0; i < dt.Rows.Count; ++i)
     {
       DataRow row = dt.Rows[i];
-      T logins = Parse<T>(row);
+      ILogins logins = Parse(row, type);
       results.Add(logins);
     }
 
     return results;
   }
 
-  public static T Parse<T>(DataRow row) where T : ILogins
+  public static ILogins Parse(DataRow row, Type type)
   {
-    T res = Activator.CreateInstance<T>();
-    Type type = res.GetType();
+    object res = Activator.CreateInstance(type);
 
     if (type.IsClass)
     {
@@ -154,6 +158,6 @@ public static class BrowserHelper
       }
     }
 
-    return res;
+    return res as ILogins;
   }
 }
