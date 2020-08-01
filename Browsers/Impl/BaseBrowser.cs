@@ -8,18 +8,28 @@ using System.IO;
 public abstract class BaseBrowser : IBrowser
 {
   public abstract string name { get; }
+  public abstract DirectoryInfo applicationDataPath { get; }
   public abstract string loginsTable { get; }
   public abstract Type loginsType { get; }
 
-  public abstract bool Scan(IList<string> results);
+  public abstract bool Scan(IList<ScanResult> results);
   public abstract IList<ILogins> Get(string sqliteDataSource);
   public abstract int Insert(string sqliteDataSource, IList<ILogins> logins, Action<int, int> onProgress);
 
-  protected bool OnScan(IList<string> results, string relativeFolderPath, string loginFileName)
+  protected bool OnScan(IList<ScanResult> results, string relativeFolderPath, string stateFileName, string[] loginSubfolderPatterns, string loginFileName)
   {
-    string mainFolder = AppArgs.GetArgString("-scan-main-folder", Constants.APP_DATA_LOCAL.FullName);
+    string mainFolder = AppArgs.GetArgString("-scan-main-folder", string.Empty);
+    if (string.IsNullOrEmpty(mainFolder))
+    {
+      mainFolder = applicationDataPath.FullName;
+    }
+    else
+    {
+      mainFolder = Path.Combine(mainFolder, applicationDataPath.Name);
+    }
+
     string rootFolder = Path.Combine(mainFolder, relativeFolderPath);
-    return ScanHelper.Scan(rootFolder, loginFileName, results);
+    return ScanHelper.Scan(rootFolder, stateFileName, loginSubfolderPatterns, loginFileName, results);
   }
 
   protected IList<ILogins> OnGet(string sqliteDataSource)

@@ -40,7 +40,7 @@ public class Program
     }
     Console.WriteLine("Found supported browsers: {0}", supportedBrowsers);
 
-    List<ScanResult> results = new List<ScanResult>();
+    List<BrowserScanResult> results = new List<BrowserScanResult>();
 
     Scan(results);
 
@@ -88,7 +88,7 @@ public class Program
     return x.GetType().Name.CompareTo(y.GetType().Name);
   }
 
-  private static int SelectIndex(string name, IList<ScanResult> results)
+  private static int SelectIndex(string name, IList<BrowserScanResult> results)
   {
     int idx = -1;
     while (idx < 0)
@@ -109,17 +109,17 @@ public class Program
     return idx;
   }
 
-  private static void Scan(IList<ScanResult> results)
+  private static void Scan(IList<BrowserScanResult> results)
   {
     for (int i = 0; i < browsers.Count; ++i)
     {
       IBrowser browser = browsers[i];
-      List<string> paths = new List<string>();
-      if (browser.Scan(paths))
+      List<ScanResult> scans = new List<ScanResult>();
+      if (browser.Scan(scans))
       {
-        foreach (string path in paths)
+        foreach (ScanResult scan in scans)
         {
-          results.Add(new ScanResult(browser, path));
+          results.Add(new BrowserScanResult(browser, scan));
         }
       }
     }
@@ -128,17 +128,17 @@ public class Program
     {
       for (int i = 0; i < results.Count; ++i)
       {
-        ScanResult result = results[i];
-        Console.WriteLine(string.Format("{0}. {1} ({2})", i, result.path, result.browser.name));
+        BrowserScanResult result = results[i];
+        Console.WriteLine(string.Format("{0}. {1} ({2})", i, result.scan.path, result.browser.name));
       }
     }
     else
     {
-      Console.WriteLine("nothing found");
+      Console.WriteLine("Nothing found");
     }
   }
 
-  private static void Copy(int srcIndex, int destIndex, IList<ScanResult> results)
+  private static void Copy(int srcIndex, int destIndex, IList<BrowserScanResult> results)
   {
     if (srcIndex == destIndex)
     {
@@ -146,27 +146,29 @@ public class Program
       return;
     }
 
-    if (!GetLogins(results[srcIndex], out IList<ILogins> srcLogins))
+    BrowserScanResult srcScanResult = results[srcIndex];
+    if (!GetLogins(srcScanResult, out IList<ILogins> srcLogins))
       return;
 
-    if (!CopyLogins(results[destIndex], srcLogins, out int srcSkipped, out int srcCopied))
+    BrowserScanResult descScanResult = results[destIndex];
+    if (!CopyLogins(descScanResult, srcLogins, out int srcSkipped, out int srcCopied))
       return;
 
     Console.WriteLine(string.Format("Copied {0} of {1} logins. Skipped {2} logins", srcCopied, srcLogins.Count - srcSkipped, srcSkipped));
   }
 
-  private static bool GetLogins(ScanResult scanResult, out IList<ILogins> results)
+  private static bool GetLogins(BrowserScanResult scanResult, out IList<ILogins> results)
   {
-    string path = scanResult.path;
+    string path = scanResult.scan.path;
     IBrowser browser = scanResult.browser;
 
     results = browser.Get(path);
     return results != null;
   }
 
-  private static bool CopyLogins(ScanResult scanResult, IList<ILogins> srcLogins, out int skipped, out int copied)
+  private static bool CopyLogins(BrowserScanResult scanResult, IList<ILogins> srcLogins, out int skipped, out int copied)
   {
-    string path = scanResult.path;
+    string path = scanResult.scan.path;
     IBrowser browser = scanResult.browser;
 
     IList<ILogins> logins = browser.Get(path);
@@ -208,7 +210,7 @@ public class Program
     return true;
   }
 
-  private static bool Validate(ConsoleKeyInfo keyInfo, IList<ScanResult> results, out int index)
+  private static bool Validate(ConsoleKeyInfo keyInfo, IList<BrowserScanResult> results, out int index)
   {
     string str = new string(keyInfo.KeyChar, 1);
     if (!int.TryParse(str, out index))
@@ -239,17 +241,5 @@ public class Program
       one.PasswordElement == two.PasswordElement &&
       one.PasswordType == two.PasswordType &&
       one.SignonRealm == two.SignonRealm;
-  }
-
-  public struct ScanResult
-  {
-    public IBrowser browser;
-    public string path;
-
-    public ScanResult(IBrowser browser, string path)
-    {
-      this.browser = browser;
-      this.path = path;
-    }
   }
 }

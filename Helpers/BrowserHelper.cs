@@ -2,10 +2,17 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
+using System.IO;
 using System.Reflection;
 
 public static class BrowserHelper
 {
+  public static DirectoryInfo Directory(Environment.SpecialFolder specialFolder)
+  {
+    string folderPath = Environment.GetFolderPath(specialFolder);
+    return new DirectoryInfo(folderPath);
+  }
+
   private static Dictionary<T, PropertyInfo> FindProperties<T>(Type type) where T : Attribute
   {
     Dictionary<T, PropertyInfo> results = new Dictionary<T, PropertyInfo>();
