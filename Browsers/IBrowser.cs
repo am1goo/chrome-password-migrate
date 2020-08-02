@@ -5,6 +5,7 @@ using System.IO;
 public interface IBrowser
 {
   string name { get; }
+  EncryptionMode supportedEncryption { get; }
   DirectoryInfo applicationDataPath { get; }
   string loginsTable { get; }
   Type loginsType { get; }

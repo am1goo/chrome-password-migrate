@@ -11,6 +11,7 @@ public class GoogleChromeBrowser : BaseBrowser
   private const string LOGIN_FILE_NAME = "Login Data";
 
   public override string name { get { return "Chrome Browser"; } }
+  public override EncryptionMode supportedEncryption { get { return EncryptionMode.ChromeV10; } }
   public override DirectoryInfo applicationDataPath { get { return BrowserHelper.Directory(Environment.SpecialFolder.LocalApplicationData); } }
   public override string loginsTable { get { return "logins"; } }
   public override Type loginsType { get { return typeof(GoogleChromeBrowserLogins); } }

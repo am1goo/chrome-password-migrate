@@ -29,14 +29,10 @@ public static class BrowserHelper
     return results;
   }
 
-  public static T Copy<T>(ILogins src, string srcEncryptedKey, IBrowser destBrowser, string destEncryptedKey) where T : ILogins
+  public static T Copy<T>(ILogins src, IBrowser srcBrowser, string srcEncryptedKey, IBrowser destBrowser, string destEncryptedKey) where T : ILogins
   {
-    EncryptHelper.Result decrypted = EncryptHelper.Decrypt(src.PasswordValue, srcEncryptedKey, out string pwd);
-    if (decrypted != EncryptHelper.Result.Success)
-      return default(T);
-
-    EncryptHelper.Result encrypted = EncryptHelper.Encrypt(pwd, destEncryptedKey, out byte[] passwordValue);
-    if (encrypted != EncryptHelper.Result.Success)
+    bool converted = Convert(srcBrowser.supportedEncryption, srcEncryptedKey, src.PasswordValue, destBrowser.supportedEncryption, destEncryptedKey, out byte[] passwordValue);
+    if (!converted)
       return default(T);
 
     Type srcType = src.GetType();
@@ -74,6 +70,44 @@ public static class BrowserHelper
       }
     }
     return dest;
+  }
+
+  public static bool Convert(EncryptionMode srcMode, string srcEncryptedKey, byte[] srcBytes, EncryptionMode destMode, string destEncryptedKey, out byte[] destBytes)
+  {
+    string pwd;
+    switch (srcMode)
+    {
+      case EncryptionMode.ChromeV10:
+        EncryptHelper.Result decrypted = EncryptHelper.DecryptV10(srcBytes, srcEncryptedKey, out pwd);
+        if (decrypted != EncryptHelper.Result.Success)
+        {
+          destBytes = null;
+          return false;
+        }
+        break;
+
+      default:
+        destBytes = null;
+        return false;
+    }
+
+    switch (destMode)
+    {
+      case EncryptionMode.ChromeV10:
+        EncryptHelper.Result encrypted = EncryptHelper.EncryptV10(pwd, destEncryptedKey, out byte[] passwordValue);
+        if (encrypted != EncryptHelper.Result.Success)
+        {
+          destBytes = null;
+          return false;
+        }
+
+        destBytes = passwordValue;
+        return true;
+
+      default:
+        destBytes = null;
+        return false;
+    }
   }
 
   public static IList<SQLiteParameter>[] Convert(IList<ILogins> logins)

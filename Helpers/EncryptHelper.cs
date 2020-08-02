@@ -16,7 +16,8 @@ public static class EncryptHelper
     InvalidEncryptedKey = 4,
   }
 
-  public static Result Encrypt(string pwd, string encryptedKey, out byte[] password)
+  private const string MODE_V10 = "v10";
+  public static Result EncryptV10(string pwd, string encryptedKey, out byte[] password)
   {
     Result res = ExtractEncryptedKey(encryptedKey, out byte[] encryptedBytes);
     if (res != Result.Success)
@@ -25,29 +26,33 @@ public static class EncryptHelper
       return res;
     }
 
-    byte[] version = Encoding.ASCII.GetBytes("v10");
+    byte[] version = Encoding.ASCII.GetBytes(MODE_V10);
     string ver = Encoding.ASCII.GetString(version);
-    switch (ver)
+    if (ver != MODE_V10)
     {
-      case "v10":
-        byte[] nonce = AesGcm256.Nonce(12);
-        Result v10res = AesGcm256.Encrypt(pwd, encryptedBytes, nonce, out byte[] ciphertextTag);
-        if (v10res != Result.Success)
-        {
-          password = null;
-          return v10res;
-        }
-
-        v10res = CombineCipherText(version, nonce, ciphertextTag, out password);
-        return v10res;
-
-      default:
-        password = null;
-        return Result.UnsupportedProtocol;
+      password = null;
+      return Result.UnsupportedProtocol;
     }
+
+    byte[] nonce = AesGcm256.Nonce(12);
+    res = AesGcm256.Encrypt(pwd, encryptedBytes, nonce, out byte[] ciphertextTag);
+    if (res != Result.Success)
+    {
+      password = null;
+      return res;
+    }
+
+    res = CombineCipherText(version, nonce, ciphertextTag, out password);
+    if (res != Result.Success)
+    {
+      password = null;
+      return res;
+    }
+
+    return Result.Success;
   }
 
-  public static Result Decrypt(byte[] password, string encryptedKey, out string pwd)
+  public static Result DecryptV10(byte[] password, string encryptedKey, out string pwd)
   {
     Result res = ExtractEncryptedKey(encryptedKey, out byte[] encryptedBytes);
     if (res != Result.Success)
@@ -64,15 +69,20 @@ public static class EncryptHelper
     }
 
     string ver = Encoding.ASCII.GetString(version);
-    switch (ver)
+    if (ver != MODE_V10)
     {
-      case "v10":
-        return AesGcm256.Decrypt(encryptedBytes, nonce, ciphertextTag, out pwd);
-
-      default:
-        pwd = null;
-        return Result.UnsupportedProtocol;
+      pwd = null;
+      return Result.UnsupportedProtocol;
     }
+
+    res = AesGcm256.Decrypt(encryptedBytes, nonce, ciphertextTag, out pwd);
+    if (res != Result.Success)
+    {
+      pwd = null;
+      return res;
+    }
+
+    return Result.Success;
   }
 
   public static Result ExtractEncryptedKey(string key, out byte[] encryptedKey)

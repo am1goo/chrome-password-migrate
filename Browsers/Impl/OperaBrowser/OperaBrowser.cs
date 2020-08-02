@@ -11,6 +11,7 @@ public class OperaBrowser : BaseBrowser
   private const string LOGIN_FILE_NAME = "Login Data";
 
   public override string name { get { return "Opera Browser"; } }
+  public override EncryptionMode supportedEncryption { get { return EncryptionMode.ChromeV10; } }
   public override DirectoryInfo applicationDataPath { get { return BrowserHelper.Directory(Environment.SpecialFolder.ApplicationData); } }
   public override string loginsTable { get { return "logins"; } }
   public override Type loginsType { get { return typeof(OperaBrowserLogins); } }

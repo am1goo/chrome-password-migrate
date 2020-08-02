@@ -163,6 +163,7 @@ public class Program
 
   private static bool CopyLogins(BrowserScanResult srcScanResult, BrowserScanResult destScanResult, IList<ILogins> srcLogins, out int skipped, out int copied, out int failed)
   {
+    IBrowser srcBrowser = srcScanResult.browser;
     string srcEncryptedKey = srcScanResult.scan.encryptedKey;
 
     string destPath = destScanResult.scan.path;
@@ -192,7 +193,7 @@ public class Program
       }
       else
       {
-        ILogins destLogin = BrowserHelper.Copy<ILogins>(srcLogin, srcEncryptedKey, destBrowser, destEncrpytedKey);
+        ILogins destLogin = BrowserHelper.Copy<ILogins>(srcLogin, srcBrowser, srcEncryptedKey, destBrowser, destEncrpytedKey);
         if (destLogin == null)
         {
           failed++;

@@ -8,6 +8,7 @@ using System.IO;
 public abstract class BaseBrowser : IBrowser
 {
   public abstract string name { get; }
+  public abstract EncryptionMode supportedEncryption { get; }
   public abstract DirectoryInfo applicationDataPath { get; }
   public abstract string loginsTable { get; }
   public abstract Type loginsType { get; }
