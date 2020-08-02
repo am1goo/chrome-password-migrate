@@ -1,4 +1,4 @@
-﻿using System;
+﻿/*using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -31,4 +31,4 @@ public class YandexBrowser : BaseBrowser
   {
     return OnInsert(sqliteDataSource, logins, onProgress);
   }
-}
+}*/

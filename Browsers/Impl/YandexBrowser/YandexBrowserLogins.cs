@@ -20,7 +20,7 @@
   [Column(Name = "password_element")]
   public string PasswordElement { get; private set; }
 
-  [Column(Name = "password_value")]
+  [Password, Column(Name = "password_value")]
   public byte[] PasswordValue { get; private set; }
 
   [Column(Name = "submit_element")]

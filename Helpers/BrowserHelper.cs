@@ -29,9 +29,19 @@ public static class BrowserHelper
     return results;
   }
 
-  public static T Copy<T>(ILogins src, Type destType) where T : ILogins
+  public static T Copy<T>(ILogins src, string srcEncryptedKey, IBrowser destBrowser, string destEncryptedKey) where T : ILogins
   {
+    EncryptHelper.Result decrypted = EncryptHelper.Decrypt(src.PasswordValue, srcEncryptedKey, out string pwd);
+    if (decrypted != EncryptHelper.Result.Success)
+      return default(T);
+
+    EncryptHelper.Result encrypted = EncryptHelper.Encrypt(pwd, destEncryptedKey, out byte[] passwordValue);
+    if (encrypted != EncryptHelper.Result.Success)
+      return default(T);
+
     Type srcType = src.GetType();
+    Type destType = destBrowser.loginsType;
+
     object destObj = Activator.CreateInstance(destType);
     if (!(destObj is T))
       return default(T);
@@ -48,8 +58,19 @@ public static class BrowserHelper
 
       if (srcDict.TryGetValue(attrDest, out PropertyInfo piSrc))
       {
-        object value = piSrc.GetValue(src, null);
-        piDest.SetValue(dest, value);
+        PasswordAttribute pwdAttrSrc = piSrc.GetCustomAttribute<PasswordAttribute>();
+        PasswordAttribute pwdAttrDest = piDest.GetCustomAttribute<PasswordAttribute>();
+
+        if (pwdAttrSrc != null && pwdAttrDest != null)
+        {
+          object value = passwordValue;
+          piDest.SetValue(dest, value);
+        }
+        else
+        {
+          object value = piSrc.GetValue(src, null);
+          piDest.SetValue(dest, value);
+        }
       }
     }
     return dest;
